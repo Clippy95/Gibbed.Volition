@@ -177,7 +177,6 @@ namespace Gibbed.Volition.Packing.VPP
                         paths[name] = fullPath;
                     }
                 }
-
             }
 
             package.Endian = endian;
@@ -202,4 +201,3 @@ namespace Gibbed.Volition.Packing.VPP
         }
     }
 }
-
