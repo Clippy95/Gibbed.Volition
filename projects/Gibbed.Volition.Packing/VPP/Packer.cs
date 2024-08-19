@@ -97,7 +97,7 @@ namespace Gibbed.Volition.Packing.VPP
                 "pack data in big-endian mode",
                 v => endian = v != null ? Endian.Big : endian
             );
-            
+
             options.Add(
                 "v|verbose",
                 "enable verbose logging",
@@ -140,7 +140,8 @@ namespace Gibbed.Volition.Packing.VPP
 
             if (extras.Count == 1)
             {
-                outputPath = Path.ChangeExtension(extras[0] + "_PACKED", ".vpp_pc");
+                var outputExtension = ps3 ? ".vpp_ps3" : (endian == Endian.Big ? ".vpp_xbox2" : ".vpp_pc");
+                outputPath = Path.ChangeExtension(extras[0] + "_PACKED", outputExtension); ;
 
                 foreach (var path in Directory.GetFiles(extras[0], "*"))
                 {
@@ -176,6 +177,7 @@ namespace Gibbed.Volition.Packing.VPP
                         paths[name] = fullPath;
                     }
                 }
+
             }
 
             package.Endian = endian;
@@ -200,3 +202,4 @@ namespace Gibbed.Volition.Packing.VPP
         }
     }
 }
+
