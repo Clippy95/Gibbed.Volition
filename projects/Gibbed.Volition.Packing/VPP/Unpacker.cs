@@ -122,7 +122,7 @@ namespace Gibbed.Volition.Packing.VPP
                     Stream data = input;
                     var flags = package.Flags;
 
-                    var dataOffset = package.DataOffset;
+                    var baseDataOffset = package.DataOffset;
                     var isCompressed = (package.Flags & Package.HeaderFlags.Compressed) != 0;
                     var isCondensed = (package.Flags & Package.HeaderFlags.Condensed) != 0;
 
@@ -136,7 +136,7 @@ namespace Gibbed.Volition.Packing.VPP
                         var zlib = new InflaterInputStream(input);
                         data.WriteFromStream(zlib, package.UncompressedSize);
 
-                        dataOffset = 0;
+                        baseDataOffset = 0;
                     }
 
                     var padding = total.ToString().Length;
@@ -176,9 +176,9 @@ namespace Gibbed.Volition.Packing.VPP
 
                             Directory.CreateDirectory(Path.GetDirectoryName(entryPath));
 
-                            var dataStart = dataOffset;
+                            var dataStart = baseDataOffset + entry.Offset;
 
-                            data.Seek(dataOffset, SeekOrigin.Begin);
+                            data.Seek(dataStart, SeekOrigin.Begin);
                             using (var output = File.Create(entryPath))
                             {
                                 if (isCompressed == false)
@@ -237,20 +237,6 @@ namespace Gibbed.Volition.Packing.VPP
                             }
                         }
 
-                        var dataSize = isCompressed == false ?
-                            entry.UncompressedSize : entry.CompressedSize;
-                        if (isCondensed == false)
-                        {
-                            dataSize = dataSize.Align(2048);
-                        }
-                        else if (
-                            isCondensed == true &&
-                            isCompressed == false)
-                        {
-                            dataSize = dataSize.Align(16);
-                        }
-
-                        dataOffset += dataSize;
                     }
 
                     if (data != input)
