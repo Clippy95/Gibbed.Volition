@@ -123,12 +123,15 @@ namespace Gibbed.Volition.Packing.VPP
                     var flags = package.Flags;
 
                     var baseDataOffset = package.DataOffset;
+                    var dataOffset = package.DataOffset;
                     var isCompressed = (package.Flags & Package.HeaderFlags.Compressed) != 0;
                     var isCondensed = (package.Flags & Package.HeaderFlags.Condensed) != 0;
+                    var useDirectoryOffsets = isCompressed == false;
 
                     if (isCondensed == true && isCompressed == true)
                     {
                         isCompressed = false;
+                        useDirectoryOffsets = true;
 
                         data = new MemoryStream();
 
@@ -176,7 +179,9 @@ namespace Gibbed.Volition.Packing.VPP
 
                             Directory.CreateDirectory(Path.GetDirectoryName(entryPath));
 
-                            var dataStart = baseDataOffset + entry.Offset;
+                            var dataStart = useDirectoryOffsets == true ?
+                                baseDataOffset + entry.Offset :
+                                dataOffset;
 
                             data.Seek(dataStart, SeekOrigin.Begin);
                             using (var output = File.Create(entryPath))
@@ -235,6 +240,24 @@ namespace Gibbed.Volition.Packing.VPP
                                     }
                                 }
                             }
+                        }
+
+                        if (useDirectoryOffsets == false)
+                        {
+                            var dataSize = isCompressed == false ?
+                                entry.UncompressedSize : entry.CompressedSize;
+                            if (isCondensed == false)
+                            {
+                                dataSize = dataSize.Align(2048);
+                            }
+                            else if (
+                                isCondensed == true &&
+                                isCompressed == false)
+                            {
+                                dataSize = dataSize.Align(16);
+                            }
+
+                            dataOffset += dataSize;
                         }
 
                     }
